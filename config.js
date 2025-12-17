@@ -4,4 +4,5 @@ module.exports = {
   globalOwnerOnly: false,
   globalGroupOnly: false,
   botName: 'Echo',
+  geminiApiKey: 'AIzaSyCb6wSA6WilEgR6kN8752OGrdoGsjsgnNk'
 }
