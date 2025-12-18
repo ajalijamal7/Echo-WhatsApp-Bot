@@ -1,8 +1,13 @@
+require('dotenv').config()
+
 module.exports = {
   prefix: '.',
-  owner: '96181053255',
+  owners: process.env.OWNERS
+    ? process.env.OWNERS.split(',').map(o => o.trim())
+    : [],
   globalOwnerOnly: false,
   globalGroupOnly: false,
   botName: 'Echo',
-  geminiApiKey: 'AIzaSyCb6wSA6WilEgR6kN8752OGrdoGsjsgnNk'
+  geminiApiKey: process.env.GEMINI_API_KEY || null,
+
 }

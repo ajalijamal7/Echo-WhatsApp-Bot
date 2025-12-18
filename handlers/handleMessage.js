@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
-const { prefix, globalOwnerOnly, globalGroupOnly, owner } = require('../config')
+const { prefix, globalOwnerOnly, globalGroupOnly, owners } = require('../config')
+
 
 const commands = {}
 
@@ -13,30 +14,50 @@ for (const file of commandFiles) {
     commands[command.name] = command
 }
 
-function normalizeJid(jid) {
-    return jid?.split('@')[0].split(':')[0]
+function normalizeNumber(jid) {
+    return jid?.replace(/\D/g, '')
 }
 
 function isOwner(msg) {
+
     if (msg.key.fromMe === true) return true
-
+    
     const senderJid = msg.key.participant || msg.key.remoteJid
-    if (!senderJid) return false
 
-    const senderNumber = normalizeJid(senderJid)
-    return senderNumber === owner
+    const senderNumber = normalizeNumber(senderJid)
+
+    return owners.includes(senderNumber)
 }
+
+
+
 
 function isGroup(msg) {
     return msg.key.remoteJid.endsWith('@g.us')
 }
 
-module.exports = async (sock, msg) => {
-    
-    const text =
-        msg.message?.conversation ||
-        msg.message?.extendedTextMessage?.text
+function getText(msg) {
+    if (!msg.message) return null
 
+    const m = msg.message
+    if (m.conversation) return m.conversation
+    if (m.extendedTextMessage?.text) return m.extendedTextMessage.text
+
+    if (m.ephemeralMessage?.message) {
+        return getText({ message: m.ephemeralMessage.message })
+    }
+
+    if (m.viewOnceMessage?.message) {
+        return getText({ message: m.viewOnceMessage.message })
+    }
+
+    return null
+}
+
+module.exports = async (sock, msg) => {
+    if (msg.key.remoteJid === 'status@broadcast') return
+
+    const text = getText(msg)
     if (!text) return
     if (!text.startsWith(prefix)) return
 
@@ -47,13 +68,13 @@ module.exports = async (sock, msg) => {
     if (!command) return
 
     if (!command.ignoreGlobal) {
-        if (globalOwnerOnly === true && !isOwner(msg)) {
+        if (globalOwnerOnly && !isOwner(msg)) {
             return sock.sendMessage(msg.key.remoteJid, {
-                text: '❌ Commands are restricted to the bot owner.'
+                text: '❌ Commands are restricted to bot owners.'
             })
         }
 
-        if (globalGroupOnly === true && !isGroup(msg)) {
+        if (globalGroupOnly && !isGroup(msg)) {
             return sock.sendMessage(msg.key.remoteJid, {
                 text: '❌ Commands can only be used in groups.'
             })

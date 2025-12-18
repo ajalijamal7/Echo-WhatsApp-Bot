@@ -32,7 +32,7 @@ module.exports = {
         text += `⚙️ Prefix: \`${prefix}\`\n`
         text += `🤖 Bot: *${botName}*\n`
         text += `🚀 Built with ❤️ using Node.js\n`
-        text += `Owner: Ali - Jamal`
+        text += `Owners: Ali - Jamal & Bahaa El Rawass`
 
 
         await sock.sendMessage(

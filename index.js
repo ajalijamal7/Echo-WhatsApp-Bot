@@ -5,7 +5,7 @@ process.on('unhandledRejection', err => {
 process.on('uncaughtException', err => {
     console.error('UNCAUGHT EXCEPTION:', err)
 })
-    
+
 
 const {
     default: makeWASocket,
@@ -14,6 +14,8 @@ const {
 
 const qrcode = require('qrcode-terminal')
 const handleMessage = require('./handlers/handleMessage')
+require('dotenv').config()
+
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth')
