@@ -1,3 +1,4 @@
 **/auth/
 .env
-*.exe
+bin/ffmpeg.exe
+bin/
