@@ -1,11 +1,16 @@
 const { exec } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const YTDLP = `"C:\\Users\\ajali\\AppData\\Local\\Microsoft\\WinGet\\Links\\yt-dlp.exe"`
-const FFMPEG = `"C:\\Users\\ajali\\AppData\\Local\\Microsoft\\WinGet\\Links\\ffmpeg.exe"`
+const YTDLP = resolveBinary('yt-dlp.exe', 'yt-dlp')
+const FFMPEG = resolveBinary('ffmpeg.exe', 'ffmpeg')
 
-
-
+function resolveBinary(winName, unixName) {
+    const local = path.join(__dirname, '..', 'bin', winName)
+    if (process.platform === 'win32' && fs.existsSync(local)) {
+        return local
+    }
+    return unixName
+}
 
 module.exports = {
     name: 'song',
@@ -23,17 +28,16 @@ module.exports = {
         const tmpDir = path.join(__dirname, '../tmp')
         const outputTemplate = path.join(tmpDir, `${baseName}.%(ext)s`)
 
-        if (!fs.existsSync(tmpDir)) {
-            fs.mkdirSync(tmpDir)
-        }
+        fs.mkdirSync(tmpDir, { recursive: true })
+
 
         await sock.sendMessage(msg.key.remoteJid, {
             text: '🎵 Searching and downloading...'
         })
 
         const cmd =
-            `${YTDLP} -x --audio-format mp3 ` +
-            `--ffmpeg-location ${FFMPEG} ` +
+            `"${YTDLP}" -x --audio-format mp3 ` +
+            `--ffmpeg-location "${FFMPEG}" ` +
             `--audio-quality 0 ` +
             `--no-playlist ` +
             `--default-search ytsearch1 ` +
@@ -45,7 +49,15 @@ module.exports = {
 
 
 
-        exec(cmd, { shell: 'cmd.exe', windowsHide: true }, async (err, stdout, stderr) => {
+
+        exec(cmd, {
+            windowsHide: true,
+            shell: process.platform === 'win32' ? 'cmd.exe' : '/bin/bash',
+            timeout: 1000 * 60 * 3,
+            maxBuffer: 1024 * 1024 * 20
+        }, async (err, stdout, stderr) => {
+
+
             console.log('YT-DLP STDOUT:\n', stdout)
             console.log('YT-DLP STDERR:\n', stderr)
 
@@ -73,7 +85,7 @@ module.exports = {
                 await sock.sendMessage(
                     msg.key.remoteJid,
                     {
-                        audio: fs.readFileSync(fullPath),
+                        audio: { url: fullPath },
                         mimetype: 'audio/mpeg'
                     },
                     { quoted: msg }
@@ -84,12 +96,10 @@ module.exports = {
                     text: '❌ Failed to send audio.'
                 })
             } finally {
-               
+
                 try {
                     fs.unlinkSync(fullPath)
-                    console.log('🧹 Deleted temp file:', mp3File)
                 } catch (cleanupErr) {
-                    console.error('CLEANUP ERROR:', cleanupErr)
                 }
             }
         })
