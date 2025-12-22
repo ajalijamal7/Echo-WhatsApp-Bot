@@ -9,5 +9,6 @@ module.exports = {
   globalGroupOnly: false,
   botName: 'Echo',
   geminiApiKey: process.env.GEMINI_API_KEY || null,
+  REMOVE_BG_API_KEY: process.env.REMOVE_BG_API_KEY || null,
 
 }
