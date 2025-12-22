@@ -10,3 +10,6 @@ temp/
 
 
 .env
+
+memory.json
+cooldown.json
