@@ -1,0 +1,26 @@
+const config = require("../config");
+const fs = require("fs");
+
+module.exports = {
+  name: "setname",
+  description: "Sets the name of the bot(Restart Required)",
+
+  run: async ({ sock, msg, args }) => {
+    if (!args.length) {
+      return sock.sendMessage(msg.key.remoteJid, {
+        text: "❌ Usage: .setname <name>",
+      });
+    }
+
+    const botName = args.join(" ");
+
+    const settings = JSON.parse(fs.readFileSync("./settings.json", "utf8"));
+    settings.botname = botName;
+
+    fs.writeFileSync("./settings.json", JSON.stringify(settings));
+
+    await sock.sendMessage(msg.key.remoteJid, {
+      text: `🤖 ${config.botName}:\nThe name has been set to ${botName} .`,
+    });
+  },
+};
