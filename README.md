@@ -49,9 +49,10 @@ All main behavior is controlled from config.js
 ## Running the Bot
 
 1. Run the [install dependencies](installDependencies.bat) file
-2. Start the bot using the [run](run.bat) file
-3. Scan the QR code with WhatsApp to log in.
-4. Close the terminal when you want to stop the bot
+2. Run the [create .env](create-env.ps1) file to create the .env file and follow the instructions inside
+3. Start the bot using the [run](run.bat) file
+4. Scan the QR code with WhatsApp to log in.
+5. Close the terminal when you want to stop the bot
 
 ## Notes
 
