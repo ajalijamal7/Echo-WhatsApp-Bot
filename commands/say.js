@@ -1,18 +1,20 @@
+const { botName } = require("../helper_commands/settings");
+
 module.exports = {
-  name: 'say',
-  description: 'Says what you want him to say like a good slave',
+  name: "say",
+  description: "Says what you want it to say",
 
   run: async ({ sock, msg, args }) => {
     if (!args.length) {
       return sock.sendMessage(msg.key.remoteJid, {
-        text: '❌ Usage: .say <message>'
-      })
+        text: "❌ Usage: .say <message>",
+      });
     }
 
-    const message = args.join(' ')
+    const message = args.join(" ");
 
     await sock.sendMessage(msg.key.remoteJid, {
-      text: message
-    })
-  }
-}
+      text: `🤖 ${botName} Says:\n${message}`,
+    });
+  },
+};

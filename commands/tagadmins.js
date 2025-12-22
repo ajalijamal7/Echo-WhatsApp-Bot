@@ -1,5 +1,3 @@
-const { ownerOnly } = require("./restart")
-
 module.exports = {
     name: 'tagadmins',
     description: 'Tag all group admins',

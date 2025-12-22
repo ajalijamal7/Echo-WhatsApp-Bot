@@ -1,4 +1,4 @@
-const { botName } = require('../config')
+const { botName } = require('../helper_commands/settings')
 
 module.exports = {
   name: 'ping',

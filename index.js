@@ -14,7 +14,6 @@ const {
 
 const qrcode = require('qrcode-terminal')
 const handleMessage = require('./handlers/handleMessage')
-require('dotenv').config()
 
 
 async function startBot() {

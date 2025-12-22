@@ -1,4 +1,3 @@
-const config = require("../config");
 const fs = require("fs");
 
 module.exports = {
@@ -20,7 +19,7 @@ module.exports = {
     fs.writeFileSync("./settings.json", JSON.stringify(settings));
 
     await sock.sendMessage(msg.key.remoteJid, {
-      text: `🤖 ${config.botName}:\nThe Prefix has been set to ${userPrefix} .`,
+      text: `🤖 ${settings.botname}:\nThe Prefix has been set to ${userPrefix} .`,
     });
   },
 };

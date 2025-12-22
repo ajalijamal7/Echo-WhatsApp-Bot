@@ -1,4 +1,3 @@
-const config = require("../config");
 const fs = require("fs");
 
 module.exports = {
@@ -15,12 +14,13 @@ module.exports = {
     const botName = args.join(" ");
 
     const settings = JSON.parse(fs.readFileSync("./settings.json", "utf8"));
+    const previousName = settings.botname
     settings.botname = botName;
 
     fs.writeFileSync("./settings.json", JSON.stringify(settings));
 
     await sock.sendMessage(msg.key.remoteJid, {
-      text: `🤖 ${config.botName}:\nThe name has been set to ${botName} .`,
+      text: `🤖 ${previousName}:\nThe name has been set to ${botName} .`,
     });
   },
 };

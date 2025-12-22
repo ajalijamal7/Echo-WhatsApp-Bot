@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const config = require("../config");
+const settings = require("../helper_commands/settings");
 const memory = require("../helper_commands/memory");
 const cooldown = require("../helper_commands/cooldown");
 
@@ -10,13 +11,13 @@ function getSenderNumber(msg) {
 }
 
 module.exports = {
-  name: `ask${config.botName.toLocaleLowerCase()}`,
-  description:`Ask ${config.botName} a question(it is a LIMITED feature)`,
+  name: `ask${settings.botName.toLocaleLowerCase()}`,
+  description:`Ask ${settings.botName} a question(it is a LIMITED feature)`,
 
   run: async ({ sock, msg, args }) => {
     if (!args.length) {
       return sock.sendMessage(msg.key.remoteJid, {
-        text: `❌ Usage: .ask${config.botName} <question>`,
+        text: `❌ Usage: .ask${settings.botName} <question>`,
       });
     }
 
@@ -30,7 +31,7 @@ module.exports = {
 
       if (cooldownStatus.blocked) {
         return sock.sendMessage(msg.key.remoteJid, {
-          text: `⏳ ${config.botName} is cooling down.\nPlease wait ${cooldown.formatTime(
+          text: `⏳ ${settings.botName} is cooling down.\nPlease wait ${cooldown.formatTime(
             cooldownStatus.remainingMs
           )}.`,
         });
@@ -60,13 +61,13 @@ module.exports = {
       }
 
       await sock.sendMessage(msg.key.remoteJid, {
-        text: `🤖 *${config.botName}:*\n\n${reply}`,
+        text: `🤖 *${settings.botName}:*\n\n${reply}`,
       });
     } catch (err) {
       console.error("GEMINI ERROR:", err);
 
       await sock.sendMessage(msg.key.remoteJid, {
-        text: `🤖 *${config.botName}:*\n\n${memory.handleGeminiError(err)}`,
+        text: `🤖 *${settings.botName}:*\n\n${memory.handleGeminiError(err)}`,
       });
     }
   },

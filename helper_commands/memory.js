@@ -1,6 +1,5 @@
 const fs = require("fs");
-const {botName} = require("../config")
-
+const { botName } = require("./settings");
 const MEMORY_FILE = "./memory.json";
 
 const SYSTEM_PROMPT = `

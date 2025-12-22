@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { prefix, botName } = require('../config')
-const { ignoregolabal } = require('./ping')
+const { prefix, botName } = require('../helper_commands/settings')
 
 module.exports = {
     name: 'help',
