@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { maybeAutoVoice } = require("../utils/maybeAutoVoice");
 const config = require("../config");
 const settings = require("../helper_commands/settings");
 const memory = require("../helper_commands/memory");
@@ -17,7 +18,7 @@ module.exports = {
   run: async ({ sock, msg, args }) => {
     if (!args.length) {
       return sock.sendMessage(msg.key.remoteJid, {
-        text: `❌ Usage: .ask${settings.botName} <question>`,
+        text: `❌ Usage: .ask${settings.botName.toLocaleLowerCase()} <question>`,
       });
     }
 
@@ -63,6 +64,7 @@ module.exports = {
       await sock.sendMessage(msg.key.remoteJid, {
         text: `🤖 *${settings.botName}:*\n\n${reply}`,
       });
+      await maybeAutoVoice(sock, Jid, reply)
     } catch (err) {
       console.error("GEMINI ERROR:", err);
 

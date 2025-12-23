@@ -8,4 +8,11 @@ module.exports = {
   globalGroupOnly: false,
   geminiApiKey: process.env.GEMINI_API_KEY || null,
   REMOVE_BG_API_KEY: process.env.REMOVE_BG_API_KEY || null,
+  voiceEngine: "elevenlabs",
+  autovoice: false,
+
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY || null,
+    voiceId: "6AUOG2nbfr0yFEeI0784"
+  }
 };

@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const { globalOwnerOnly, globalGroupOnly, owners } = require("../config");
 const { prefix } = require("../helper_commands/settings");
+const { saveMessage, getLastMessages } = require("../messagestore");
+
 
 const commands = {};
 
@@ -53,6 +55,24 @@ module.exports = async (sock, msg) => {
 
   const text = getText(msg);
   if (!text) return;
+
+  const jid = msg.key.remoteJid;
+  const sender = msg.key.participant || jid;
+
+
+  const ts =
+    msg.messageTimestamp?.low ??
+    msg.messageTimestamp;
+
+
+  if (ts && !text.startsWith(prefix)) {
+    saveMessage(jid, sender, text, ts);
+  }
+
+
+  console.log(getLastMessages(msg.key.remoteJid, 50));
+
+
   if (!text.startsWith(prefix)) return;
 
   const args = text.slice(prefix.length).trim().split(/\s+/);
@@ -60,6 +80,9 @@ module.exports = async (sock, msg) => {
 
   const command = commands[commandName];
   if (!command) return;
+
+
+
 
   if (!command.ignoreGlobal) {
     if (globalOwnerOnly && !isOwner(msg)) {
@@ -92,4 +115,5 @@ module.exports = async (sock, msg) => {
   } catch (err) {
     console.error("COMMAND ERROR:", err);
   }
+
 };

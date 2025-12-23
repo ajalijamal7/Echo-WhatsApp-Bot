@@ -1,8 +1,10 @@
 const fs = require("fs");
+const { ownerOnly } = require("./autovoice");
 
 module.exports = {
   name: "setprefix",
   description: "Sets the prefix of the bot(Restart Required)",
+  ownerOnly: true,
 
   run: async ({ sock, msg, args }) => {
     if (!args.length) {

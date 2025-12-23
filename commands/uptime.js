@@ -1,20 +1,24 @@
+const { maybeAutoVoice } = require("../utils/maybeAutoVoice");
+
 module.exports = {
-    name: 'uptime',
-    description: 'Show how long the bot has been running',
+    name: "uptime",
+    description: "Show how long the bot has been running",
 
     run: async ({ sock, msg }) => {
-        const uptimeSeconds = process.uptime()
+        const jid = msg.key.remoteJid;
 
-        const seconds = Math.floor(uptimeSeconds % 60)
-        const minutes = Math.floor((uptimeSeconds / 60) % 60)
-        const hours = Math.floor((uptimeSeconds / 3600) % 24)
-        const days = Math.floor(uptimeSeconds / 86400)
+        const uptimeSeconds = process.uptime();
 
-        const uptime =
-            `${days}d ${hours}h ${minutes}m ${seconds}s`
+        const seconds = Math.floor(uptimeSeconds % 60);
+        const minutes = Math.floor((uptimeSeconds / 60) % 60);
+        const hours = Math.floor((uptimeSeconds / 3600) % 24);
+        const days = Math.floor(uptimeSeconds / 86400);
 
-        await sock.sendMessage(msg.key.remoteJid, {
-            text: `⏱ Uptime: ${uptime}`
-        })
+        const uptime = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+        const text = `⏱ Uptime: ${uptime}`;
+
+        await sock.sendMessage(jid, { text });
+        await maybeAutoVoice(sock, jid, text);
     }
-}
+};
