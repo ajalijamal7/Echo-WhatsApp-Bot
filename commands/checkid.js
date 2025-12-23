@@ -7,7 +7,6 @@ function getSenderNumber(msg) {
 module.exports = {
   name: "checkid",
   description: "Check your Whatsapp ID",
-  ownerOnly: true,
 
   run: async ({ sock, msg }) => {
     await sock.sendMessage(msg.key.remoteJid, {
