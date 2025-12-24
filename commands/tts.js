@@ -2,12 +2,19 @@ const gTTS = require("gtts")
 const fs = require("fs")
 const path = require("path")
 const crypto = require("crypto")
-const ffmpeg = require("fluent-ffmpeg")
-const ffmpegPath = require("ffmpeg-static")
+const { exec } = require("child_process")
 
 const botConfig = require("../settings.json")
 
-ffmpeg.setFfmpegPath(ffmpegPath)
+function resolveBinary(winName, unixName) {
+    const local = path.join(__dirname, "..", "bin", winName)
+    if (process.platform === "win32" && fs.existsSync(local)) {
+        return local
+    }
+    return unixName
+}
+
+const FFMPEG = resolveBinary("ffmpeg.exe", "ffmpeg")
 
 function normalizeGender(gender) {
     return gender?.toLowerCase() === "male" ? "male" : "female"
@@ -47,40 +54,36 @@ module.exports = {
         }
 
         const tempDir = path.join(__dirname, "../temp")
-        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir)
+        fs.mkdirSync(tempDir, { recursive: true })
 
         const id = crypto.randomBytes(5).toString("hex")
-        const rawMp3 = path.join(tempDir, `tts-raw-${id}.mp3`)
-        const finalOpus = path.join(tempDir, `tts-${lang}-${id}.opus`)
+        const rawMp3 = path.join(tempDir, `tts_raw_${id}.mp3`)
+        const finalOpus = path.join(tempDir, `tts_${lang}_${id}.opus`)
 
         try {
-            
+            // 1️⃣ Generate MP3 using Google TTS
             const gtts = new gTTS(text, lang)
-
-            await new Promise((resolve, reject) => {
-                gtts.save(rawMp3, (err) => {
-                    if (err) reject(err)
-                    else resolve()
-                })
+            await new Promise((res, rej) => {
+                gtts.save(rawMp3, err => err ? rej(err) : res())
             })
 
-            
+            // 2️⃣ Gender-based pitch simulation
             const gender = normalizeGender(botConfig.gender)
 
-            await new Promise((resolve, reject) => {
-                ffmpeg(rawMp3)
-                    .audioFilters(
-                        gender === "male"
-                            ? "asetrate=44100*0.9,atempo=1.05"
-                            : "asetrate=44100*1.05,atempo=0.95"
-                    )
-                    .audioCodec("libopus")
-                    .save(finalOpus)
-                    .on("end", resolve)
-                    .on("error", reject)
+            const filter =
+                gender === "male"
+                    ? "asetrate=44100*0.9,atempo=1.05"
+                    : "asetrate=44100*1.05,atempo=0.95"
+
+            // 3️⃣ Convert to Opus (WhatsApp-ready)
+            await new Promise((res, rej) => {
+                exec(
+                    `"${FFMPEG}" -y -i "${rawMp3}" -af "${filter}" -ac 1 -ar 48000 -c:a libopus "${finalOpus}"`,
+                    err => err ? rej(err) : res()
+                )
             })
 
-            
+            // 4️⃣ Send as voice note
             await sock.sendMessage(jid, {
                 audio: fs.readFileSync(finalOpus),
                 mimetype: "audio/ogg; codecs=opus",
@@ -89,7 +92,6 @@ module.exports = {
 
         } catch (e) {
             console.error("TTS ERROR:", e)
-
             await sock.sendMessage(jid, {
                 text: "❌ Failed to generate audio (language may be unsupported)"
             })
