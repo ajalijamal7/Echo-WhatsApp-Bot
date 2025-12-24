@@ -63,6 +63,14 @@ ${lastTime}
         `.trim();
 
         await sock.sendMessage(groupJid, { text: statsText });
-        await maybeAutoVoice(sock, groupJid, statsText);
+        await maybeAutoVoice(
+            sock,
+            msg.key.remoteJid,
+            reply,
+            {
+                enabled: config.autovoice,
+                elevenlabs: config.elevenlabs
+            }
+        );
     }
 };

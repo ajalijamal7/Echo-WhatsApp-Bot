@@ -4,7 +4,6 @@ const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("ffmpeg-static");
 const gTTS = require("gtts");
 const { ElevenLabsClient } = require("@elevenlabs/elevenlabs-js");
-const config = require("../config");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -24,13 +23,13 @@ async function googleTTS(text, out) {
     });
 }
 
-async function elevenLabsTTS(text, out) {
+async function elevenLabsTTS(text, out, elevenlabs) {
     const client = new ElevenLabsClient({
-        apiKey: config.elevenlabs.apiKey
+        apiKey: elevenlabs.apiKey
     });
 
     const stream = await client.textToSpeech.convert(
-        config.elevenlabs.voiceId,
+        elevenlabs.voiceId,
         {
             text,
             modelId: "eleven_multilingual_v2",
@@ -47,10 +46,16 @@ async function elevenLabsTTS(text, out) {
     });
 }
 
-async function maybeAutoVoice(sock, jid, text) {
-    if (!config.autovoice) return;
+async function maybeAutoVoice(sock, jid, text, options = {}) {
+    const {
+        enabled = false,
+        elevenlabs = null
+    } = options;
+
+    if (!enabled) return;
 
     const clean = cleanText(text);
+    if (!clean) return;
 
     const tempDir = path.join(__dirname, "../temp");
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -58,9 +63,9 @@ async function maybeAutoVoice(sock, jid, text) {
     const mp3 = path.join(tempDir, "av.mp3");
     const opus = path.join(tempDir, "av.opus");
 
-    if (config.elevenlabs?.apiKey) {
+    if (elevenlabs?.apiKey) {
         try {
-            await elevenLabsTTS(clean, mp3);
+            await elevenLabsTTS(clean, mp3, elevenlabs);
         } catch {
             await googleTTS(clean, mp3);
         }

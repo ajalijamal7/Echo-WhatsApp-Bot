@@ -13,7 +13,7 @@ function getSenderNumber(msg) {
 
 module.exports = {
   name: `ask${settings.botName.toLocaleLowerCase()}`,
-  description:`Ask ${settings.botName} a question(it is a LIMITED feature)`,
+  description: `Ask ${settings.botName} a question(it is a LIMITED feature)`,
 
   run: async ({ sock, msg, args }) => {
     if (!args.length) {
@@ -41,7 +41,7 @@ module.exports = {
       const genAI = new GoogleGenerativeAI(config.geminiApiKey);
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-flash-lite",
         systemInstruction: userState.systemSent
           ? undefined
           : memory.SYSTEM_PROMPT,
@@ -64,7 +64,15 @@ module.exports = {
       await sock.sendMessage(msg.key.remoteJid, {
         text: `🤖 *${settings.botName}:*\n\n${reply}`,
       });
-      await maybeAutoVoice(sock, Jid, reply)
+      await maybeAutoVoice(
+        sock,
+        msg.key.remoteJid,
+        reply,
+        {
+          enabled: config.autovoice,
+          elevenlabs: config.elevenlabs
+        }
+      );
     } catch (err) {
       console.error("GEMINI ERROR:", err);
 

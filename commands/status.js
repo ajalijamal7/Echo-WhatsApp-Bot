@@ -34,6 +34,14 @@ module.exports = {
 📦 Platform: ${platform}`;
 
         await sock.sendMessage(jid, { text });
-        await maybeAutoVoice(sock, jid, text);
+        await maybeAutoVoice(
+            sock,
+            msg.key.remoteJid,
+            reply,
+            {
+                enabled: config.autovoice,
+                elevenlabs: config.elevenlabs
+            }
+        );
     }
 };
