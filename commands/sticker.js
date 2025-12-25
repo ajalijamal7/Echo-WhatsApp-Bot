@@ -7,11 +7,8 @@ const { downloadMediaMessage } = require("@whiskeysockets/baileys")
 const { REMOVE_BG_API_KEY } = require("../config")
 
 let sharp
-try {
-    sharp = require("sharp")
-} catch {
-    sharp = null
-}
+sharp = require("sharp")
+
 
 function resolveBinary(winName, unixName) {
     const local = path.join(__dirname, "..", "bin", winName)
