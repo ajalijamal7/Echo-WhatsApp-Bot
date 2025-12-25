@@ -139,6 +139,7 @@ module.exports = {
                         err => err ? rej(err) : res()
                     );
 
+
                 });
 
                 await sock.sendMessage(jid, {
