@@ -5,10 +5,7 @@ const path = require("path")
 const { exec } = require("child_process")
 const { downloadMediaMessage } = require("@whiskeysockets/baileys")
 const { REMOVE_BG_API_KEY } = require("../config")
-
-let sharp
-sharp = require("sharp")
-
+const Jimp = require("jimp")
 
 function resolveBinary(winName, unixName) {
     const local = path.join(__dirname, "..", "bin", winName)
@@ -22,7 +19,7 @@ const FFMPEG = resolveBinary("ffmpeg.exe", "ffmpeg")
 
 module.exports = {
     name: "sticker",
-    description: "Fast image/video sticker",
+    description: "Fast image/video sticker using Jimp + FFmpeg",
 
     run: async ({ sock, msg }) => {
         const jid = msg.key.remoteJid
@@ -60,23 +57,21 @@ module.exports = {
                     }
                 )
 
-                if (sharp) {
-                    try {
-                        const stickerBuffer = await sharp(imgBuffer)
-                            .resize(512, 512, {
-                                fit: "contain",
-                                background: { r: 0, g: 0, b: 0, alpha: 0 }
-                            })
-                            .webp({ quality: 70 })
-                            .toBuffer()
+                try {
+                    const img = await Jimp.read(imgBuffer)
+                    img.contain(512, 512)
+                    img.quality(70)
 
-                        await sock.sendMessage(jid, { sticker: stickerBuffer })
-                        return
-                    } catch { }
-                }
+                    const stickerBuffer = await img.getBufferAsync(Jimp.MIME_WEBP)
+
+                    await sock.sendMessage(jid, {
+                        sticker: stickerBuffer
+                    })
+                    return
+                } catch { }
 
                 if (!REMOVE_BG_API_KEY) {
-                    throw new Error("remove.bg API key not configured and sharp failed")
+                    throw new Error("remove.bg API key not configured and Jimp failed")
                 }
 
                 const inputPng = path.join(tempDir, `img_${Date.now()}.png`)
@@ -116,8 +111,8 @@ module.exports = {
                     "${outputWebp}"
                     `.replace(/\n/g, " ")
 
-                    exec(cmd, (err, stdout, stderr) => {
-                        if (err) rej(stderr || err.message)
+                    exec(cmd, (e, _, stderr) => {
+                        if (e) rej(stderr || e.message)
                         else res()
                     })
                 })
@@ -167,8 +162,8 @@ module.exports = {
                     "${outputPath}"
                     `.replace(/\n/g, " ")
 
-                    exec(cmd, (err, stdout, stderr) => {
-                        if (err) rej(stderr || err.message)
+                    exec(cmd, (e, _, stderr) => {
+                        if (e) rej(stderr || e.message)
                         else res()
                     })
                 })
