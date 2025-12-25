@@ -3,13 +3,12 @@ const fs = require("fs")
 const path = require("path")
 const crypto = require("crypto")
 const { exec } = require("child_process")
-
 const botConfig = require("../settings.json")
 
 function resolveBinary(winName, unixName) {
     const local = path.join(__dirname, "..", "bin", winName)
     if (process.platform === "win32" && fs.existsSync(local)) {
-        return local
+        return `"${local}"`
     }
     return unixName
 }
@@ -22,7 +21,7 @@ function normalizeGender(gender) {
 
 module.exports = {
     name: "tts",
-    description: "Convert text to speech (supports languages)",
+    description: "Convert text to speech (normal WhatsApp speed)",
 
     run: async ({ sock, msg, args }) => {
         const jid = msg.key.remoteJid
@@ -61,29 +60,28 @@ module.exports = {
         const finalOpus = path.join(tempDir, `tts_${lang}_${id}.opus`)
 
         try {
-            // 1️⃣ Generate MP3 using Google TTS
             const gtts = new gTTS(text, lang)
+
             await new Promise((res, rej) => {
                 gtts.save(rawMp3, err => err ? rej(err) : res())
             })
 
-            // 2️⃣ Gender-based pitch simulation
             const gender = normalizeGender(botConfig.gender)
 
-            const filter =
+            const tempo =
                 gender === "male"
-                    ? "asetrate=44100*0.9,atempo=1.05"
-                    : "asetrate=44100*1.05,atempo=0.95"
+                    ? "atempo=0.98"
+                    : "atempo=1.02"
 
-            // 3️⃣ Convert to Opus (WhatsApp-ready)
             await new Promise((res, rej) => {
                 exec(
-                    `"${FFMPEG}" -y -i "${rawMp3}" -af "${filter}" -ac 1 -ar 48000 -c:a libopus "${finalOpus}"`,
+                    `${FFMPEG} -y -i "${rawMp3}" ` +
+                    `-af "${tempo}" ` +
+                    `-ac 1 -ar 48000 -c:a libopus "${finalOpus}"`,
                     err => err ? rej(err) : res()
                 )
             })
 
-            // 4️⃣ Send as voice note
             await sock.sendMessage(jid, {
                 audio: fs.readFileSync(finalOpus),
                 mimetype: "audio/ogg; codecs=opus",
