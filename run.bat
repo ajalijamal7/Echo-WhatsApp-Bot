@@ -19,7 +19,7 @@ if errorlevel 1 (
 )
 
 REM Run the app
-node ./index.js
+pm2 start index.js --name whatsapp-bot && pm2 logs whatsapp-bot
 
 echo ===============================
 echo Application exited
