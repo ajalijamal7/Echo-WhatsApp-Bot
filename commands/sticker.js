@@ -6,6 +6,8 @@ const { exec } = require("child_process");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const { REMOVE_BG_API_KEY } = require("../config");
 
+
+
 function resolveBinary(winName, unixName) {
     const local = path.join(__dirname, "..", "bin", winName);
     if (process.platform === "win32" && fs.existsSync(local)) {
@@ -15,6 +17,10 @@ function resolveBinary(winName, unixName) {
 }
 
 const FFMPEG = resolveBinary("ffmpeg.exe", "ffmpeg");
+const isWin = process.platform === "win32";
+const ffmpegCmd = isWin ? `"${FFMPEG}"` : FFMPEG;
+
+
 
 module.exports = {
     name: "sticker",
@@ -90,7 +96,10 @@ module.exports = {
 
                 await new Promise((res, rej) => {
                     exec(
-                        `"${FFMPEG}" -y -i "${inputPng}" -vf "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=transparent" -vcodec libwebp -lossless 0 -compression_level 6 -qscale 80 "${outputWebp}"`,
+                        `${ffmpegCmd} -y -i "${inputPng}" ` +
+                        `-vf "scale=512:512:force_original_aspect_ratio=decrease,` +
+                        `pad=512:512:(ow-iw)/2:(oh-ih)/2:color=transparent" ` +
+                        `-vcodec libwebp -lossless 0 -compression_level 6 -qscale 80 "${outputWebp}"`,
                         err => err ? rej(err) : res()
                     );
                 });
@@ -123,7 +132,9 @@ module.exports = {
 
                 await new Promise((res, rej) => {
                     exec(
-                        `"${FFMPEG}" -y -i "${inputPath}" -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=15" -loop 0 -an -vsync 0 "${outputPath}"`,
+                        `${ffmpegCmd} -y -i "${inputPath}" ` +
+                        `-vf "scale=512:512:force_original_aspect_ratio=decrease,fps=15" ` +
+                        `-loop 0 -an -vsync 0 "${outputPath}"`,
                         err => err ? rej(err) : res()
                     );
                 });
