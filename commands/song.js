@@ -6,12 +6,15 @@ const YTDLP = resolveBinary('yt-dlp.exe', 'yt-dlp')
 const FFMPEG = resolveBinary('ffmpeg.exe', 'ffmpeg')
 
 function resolveBinary(winName, unixName) {
-    const local = path.join(__dirname, '..', 'bin', winName)
-    if (process.platform === 'win32' && fs.existsSync(local)) {
-        return local
+
+    const winLocal = path.join(__dirname, '..', 'bin', winName)
+    if (process.platform === 'win32' && fs.existsSync(winLocal)) {
+        return winLocal
     }
+
     return unixName
 }
+
 
 module.exports = {
     name: 'song',
@@ -35,13 +38,18 @@ module.exports = {
             text: '🎵 Searching and downloading...'
         })
 
+        const isWin = process.platform === 'win32'
+
+        const ytdlpCmd = isWin ? `"${YTDLP}"` : YTDLP
+
         const cmd =
-            `"${YTDLP}" -x --audio-format mp3 ` +
+            `${ytdlpCmd} -x --audio-format mp3 ` +
             `--audio-quality 0 ` +
             `--no-playlist ` +
             `--default-search ytsearch1 ` +
             `-o "${outputTemplate}" ` +
             `"${query}"`
+
 
         exec(
             cmd,
