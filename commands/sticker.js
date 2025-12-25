@@ -6,6 +6,13 @@ const { exec } = require("child_process")
 const { downloadMediaMessage } = require("@whiskeysockets/baileys")
 const { REMOVE_BG_API_KEY } = require("../config")
 
+let sharp
+try {
+    sharp = require("sharp")
+} catch {
+    sharp = null
+}
+
 function resolveBinary(winName, unixName) {
     const local = path.join(__dirname, "..", "bin", winName)
     if (process.platform === "win32" && fs.existsSync(local)) {
@@ -16,11 +23,9 @@ function resolveBinary(winName, unixName) {
 
 const FFMPEG = resolveBinary("ffmpeg.exe", "ffmpeg")
 
-
-
 module.exports = {
     name: "sticker",
-    description: "Convert image/video to sticker (errors sent to WhatsApp)",
+    description: "Fast image/video sticker",
 
     run: async ({ sock, msg }) => {
         const jid = msg.key.remoteJid
@@ -46,17 +51,7 @@ module.exports = {
         const tempDir = path.join(__dirname, "../temp")
         fs.mkdirSync(tempDir, { recursive: true })
 
-
         if (quoted.imageMessage) {
-            if (!REMOVE_BG_API_KEY) {
-                return sock.sendMessage(jid, {
-                    text: "❌ remove.bg API key is not configured."
-                })
-            }
-
-            const inputPng = path.join(tempDir, `img_${Date.now()}.png`)
-            const outputWebp = path.join(tempDir, `sticker_${Date.now()}.webp`)
-
             try {
                 const imgBuffer = await downloadMediaMessage(
                     mediaMsg,
@@ -67,6 +62,28 @@ module.exports = {
                         reuploadRequest: sock.updateMediaMessage
                     }
                 )
+
+                if (sharp) {
+                    try {
+                        const stickerBuffer = await sharp(imgBuffer)
+                            .resize(512, 512, {
+                                fit: "contain",
+                                background: { r: 0, g: 0, b: 0, alpha: 0 }
+                            })
+                            .webp({ quality: 70 })
+                            .toBuffer()
+
+                        await sock.sendMessage(jid, { sticker: stickerBuffer })
+                        return
+                    } catch { }
+                }
+
+                if (!REMOVE_BG_API_KEY) {
+                    throw new Error("remove.bg API key not configured and sharp failed")
+                }
+
+                const inputPng = path.join(tempDir, `img_${Date.now()}.png`)
+                const outputWebp = path.join(tempDir, `sticker_${Date.now()}.webp`)
 
                 const formData = new FormData()
                 formData.append("image_file", imgBuffer, {
@@ -97,9 +114,7 @@ module.exports = {
                     -vf "scale=512:512:force_original_aspect_ratio=decrease,
                     pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000"
                     -c:v libwebp
-                    -lossless 0
-                    -compression_level 6
-                    -q:v 80
+                    -q:v 70
                     -pix_fmt yuva420p
                     "${outputWebp}"
                     `.replace(/\n/g, " ")
@@ -114,16 +129,14 @@ module.exports = {
                     sticker: fs.readFileSync(outputWebp)
                 })
 
-            } catch (err) {
-                console.error("IMAGE STICKER ERROR:", err)
+                fs.unlinkSync(inputPng)
+                fs.unlinkSync(outputWebp)
 
+            } catch (err) {
                 await sock.sendMessage(jid, {
                     text: `❌ Image sticker error:\n\n${err.toString().slice(0, 4000)}`
                 })
             }
-
-            if (fs.existsSync(inputPng)) fs.unlinkSync(inputPng)
-            if (fs.existsSync(outputWebp)) fs.unlinkSync(outputWebp)
             return
         }
 
@@ -146,14 +159,12 @@ module.exports = {
 
                 await new Promise((res, rej) => {
                     const cmd = `
-                    ${FFMPEG} -y
+                    ${FFMPEG} -y -t 6
                     -i "${inputPath}"
-                    -vf "scale=512:512:force_original_aspect_ratio=decrease,
+                    -vf "scale=512:512,fps=12,
                     pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000"
                     -c:v libwebp
-                    -lossless 0
-                    -compression_level 6
-                    -q:v 80
+                    -q:v 70
                     -pix_fmt yuva420p
                     -loop 0
                     "${outputPath}"
@@ -170,8 +181,6 @@ module.exports = {
                 })
 
             } catch (err) {
-                console.error("VIDEO STICKER ERROR:", err)
-
                 await sock.sendMessage(jid, {
                     text: `❌ Video sticker error:\n\n${err.toString().slice(0, 4000)}`
                 })
