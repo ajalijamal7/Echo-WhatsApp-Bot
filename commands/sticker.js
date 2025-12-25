@@ -129,6 +129,7 @@ module.exports = {
                 );
 
                 fs.writeFileSync(inputPath, videoBuffer);
+                let error = ""
 
                 await new Promise((res, rej) => {
                     const cmd = `
@@ -146,13 +147,20 @@ module.exports = {
 
                     exec(cmd, (err) => {
                         if (err) {
+                            error = err
                             console.error("STICKER ERROR:", err)
+
                         }
+
                     })
 
 
 
                 });
+
+                await sock.sendMessage(jid,{
+                    text : error
+                })
 
                 await sock.sendMessage(jid, {
                     sticker: fs.readFileSync(outputPath)
