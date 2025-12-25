@@ -2,7 +2,7 @@ const { downloadMediaMessage } = require('@whiskeysockets/baileys')
 
 module.exports = {
     name: 'video',
-    description: 'Resend a replied video as a normal video',
+    description: 'Resend a replied one time video as a normal video',
 
     run: async ({ sock, msg }) => {
         const ctx = msg.message?.extendedTextMessage?.contextInfo
