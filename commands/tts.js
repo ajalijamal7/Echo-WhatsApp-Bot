@@ -21,7 +21,7 @@ function normalizeGender(gender) {
 
 module.exports = {
     name: "tts",
-    description: "Convert text to speech (normal WhatsApp speed)",
+    description: "Convert text to speech",
 
     run: async ({ sock, msg, args }) => {
         const jid = msg.key.remoteJid
@@ -99,3 +99,6 @@ module.exports = {
         }
     }
 }
+
+
+
