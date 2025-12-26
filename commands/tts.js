@@ -66,21 +66,33 @@ module.exports = {
                 gtts.save(rawMp3, err => err ? rej(err) : res())
             })
 
+
             const gender = normalizeGender(botConfig.gender)
 
+   
             const tempo =
                 gender === "male"
-                    ? "atempo=0.98"
-                    : "atempo=1.02"
+                    ? "1.05"
+                    : "1.07"
+
+            const filterChain =
+                `silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.1,` +
+                `highpass=f=250,` +
+                `lowpass=f=3500,` +
+                `acompressor=threshold=-20dB:ratio=4:attack=5:release=100,` +
+                `acompressor=threshold=-30dB:ratio=6:attack=1:release=50,` +
+                `atempo=${tempo},` +
+                `volume=1.2`
 
             await new Promise((res, rej) => {
                 exec(
                     `${FFMPEG} -y -i "${rawMp3}" ` +
-                    `-af "${tempo}" ` +
+                    `-af "${filterChain}" ` +
                     `-ac 1 -ar 48000 -c:a libopus "${finalOpus}"`,
                     err => err ? rej(err) : res()
                 )
             })
+
 
             await sock.sendMessage(jid, {
                 audio: fs.readFileSync(finalOpus),
@@ -91,11 +103,11 @@ module.exports = {
         } catch (e) {
             console.error("TTS ERROR:", e)
             await sock.sendMessage(jid, {
-                text: "❌ Failed to generate audio (language may be unsupported)"
+                text: "❌ Failed to generate audio"
             })
         } finally {
-            if (fs.existsSync(rawMp3)) fs.unlinkSync(rawMp3)
-            if (fs.existsSync(finalOpus)) fs.unlinkSync(finalOpus)
+            try { if (fs.existsSync(rawMp3)) fs.unlinkSync(rawMp3) } catch { }
+            try { if (fs.existsSync(finalOpus)) fs.unlinkSync(finalOpus) } catch { }
         }
     }
 }
