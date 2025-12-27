@@ -8,6 +8,7 @@ node_modules/
 temp/
 *.mp3
 *.ogg
+*.jpg
 
 
 .env
