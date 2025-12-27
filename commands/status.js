@@ -1,6 +1,7 @@
 const os = require("os");
 const { botName } = require("../helper_commands/settings");
 const { maybeAutoVoice } = require("../utils/maybeAutoVoice");
+const config = require("../config");
 
 module.exports = {
     name: "status",
