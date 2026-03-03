@@ -6,23 +6,27 @@ process.on('uncaughtException', err => {
     console.error('UNCAUGHT EXCEPTION:', err)
 })
 
-
 const {
     default: makeWASocket,
-    useMultiFileAuthState
+    useMultiFileAuthState,
+    fetchLatestBaileysVersion
 } = require('@whiskeysockets/baileys')
 
 const qrcode = require('qrcode-terminal')
 const handleMessage = require('./handlers/handleMessage')
-const statusStore = require('./helper_commands/statusStore');
-
-
-
+const statusStore = require('./helper_commands/statusStore')
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth')
 
-    const sock = makeWASocket({ auth: state })
+    // 🔥 Fetch latest WhatsApp Web version (IMPORTANT FIX)
+    const { version } = await fetchLatestBaileysVersion()
+
+    const sock = makeWASocket({
+        version,
+        auth: state,
+        printQRInTerminal: false
+    })
 
     sock.ev.on('creds.update', saveCreds)
 
@@ -59,8 +63,8 @@ async function startBot() {
         // Live story listener
         for (const m of messages) {
             if (m.key?.remoteJid === 'status@broadcast') {
-                console.log('📥 New story received from:', m.key.participant);
-                statusStore.addStatus(m);
+                console.log('📥 New story received from:', m.key.participant)
+                statusStore.addStatus(m)
             }
         }
 
@@ -71,9 +75,6 @@ async function startBot() {
             console.error('handleMessage is not a function — handler not loaded')
         }
     })
-
-
-
 }
 
 startBot()
