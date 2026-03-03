@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const config = require("../config");
-const API_KEY = require(config.aimlApiKey);
+const API_KEY = config.aimlApiKey;
 
 
 module.exports = {
