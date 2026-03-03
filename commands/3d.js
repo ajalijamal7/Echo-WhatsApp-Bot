@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-const fetch = require("node-fetch"); // remove if Node 18+
-const API_KEY = require("../AIMLAPI_APIkey_1294f2f3");
+const config = require("../config");
+const API_KEY = require(config.aimlApiKey);
+
 
 module.exports = {
     name: "3d",

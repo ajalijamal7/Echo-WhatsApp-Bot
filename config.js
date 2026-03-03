@@ -13,6 +13,8 @@ module.exports = {
 
   REMOVE_BG_API_KEY: process.env.REMOVE_BG_API_KEY || null,
 
+  aimlApiKey: process.env.AIML_API_KEY || null, 
+
   voiceEngine: "elevenlabs",
   autovoice: false,
 
@@ -20,5 +22,6 @@ module.exports = {
     apiKey: process.env.ELEVENLABS_API_KEY || null,
     voiceId: "6AUOG2nbfr0yFEeI0784",
   },
+
   github_auth_token: process.env.GITHUB_AUTH_TOKEN || null,
 };
