@@ -1,6 +1,7 @@
 const { PDFDocument } = require("pdf-lib");
 const fs = require("fs");
 const path = require("path");
+const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const { getLastMessages } = require("../messagestore");
 
 module.exports = {
@@ -21,7 +22,7 @@ module.exports = {
 
             let images = [];
 
-            // 🔹 CASE 1: User replied to image
+            // CASE 1: User replied to image
             if (quoted?.imageMessage) {
                 images.push({
                     message: quoted
@@ -36,7 +37,7 @@ module.exports = {
                 }
 
             } else {
-                // 🔹 CASE 2: Not replying → use recent images
+                // CASE 2: Not replying → use recent images
                 const messages = getLastMessages(from, 50)
                     .filter(m => m.message?.imageMessage)
                     .slice(-count);
@@ -53,7 +54,12 @@ module.exports = {
             const pdfDoc = await PDFDocument.create();
 
             for (const imgMsg of images) {
-                const buffer = await sock.downloadMediaMessage(imgMsg);
+                const buffer = await downloadMediaMessage(
+                    imgMsg,
+                    "buffer",
+                    {},
+                    { logger: console }
+                );
 
                 let image;
                 const mime = imgMsg.message.imageMessage.mimetype;
