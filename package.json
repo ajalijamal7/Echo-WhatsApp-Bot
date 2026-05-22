@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start index.js --name whatsapp-bot && pm2 logs whatsapp-bot",
+    "start": "npx pm2 start index.js --name whatsapp-bot && npx pm2 logs whatsapp-bot",
+    "stop": "npx pm2 kill",
     "update": "npx npm-check-updates -u && npm install",
     "test": "echo \"No tests\""
   },
